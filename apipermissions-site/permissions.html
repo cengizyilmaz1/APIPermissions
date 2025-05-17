@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permissions | Microsoft API Permissions</title>
+    <meta name="description" content="Complete list of Microsoft API permissions with filtering and detailed information.">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.10.3/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="src/styles.css">
+    <link rel="icon" href="public/favicon.ico">
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-blue-700 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <img src="public/logo.svg" alt="API Permissions Logo" class="h-10 w-10">
+                    <h1 class="text-2xl font-bold">Microsoft API Permissions</h1>
+                </div>
+                <nav>
+                    <ul class="flex space-x-6">
+                        <li><a href="index.html" class="hover:text-blue-200 transition">Home</a></li>
+                        <li><a href="permissions.html" class="hover:text-blue-200 transition font-bold">Permissions</a></li>
+                        <li><a href="about.html" class="hover:text-blue-200 transition">About</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow container mx-auto px-4 py-8">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold mb-4">Microsoft API Permissions List</h2>
+                <p class="text-lg">Complete list of Microsoft Graph API permissions with detailed information and filtering options.</p>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="mb-8 p-6 bg-white rounded-lg shadow-md" x-data="{ showFilters: false }">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Search & Filter</h3>
+                    <button 
+                        class="text-blue-600 hover:text-blue-800"
+                        @click="showFilters = !showFilters"
+                        x-text="showFilters ? 'Hide Filters' : 'Show Filters'">
+                        Show Filters
+                    </button>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="flex rounded-lg border overflow-hidden shadow-sm mb-4">
+                    <input type="text" id="advanced-search-input" 
+                        class="flex-grow p-3 outline-none" 
+                        placeholder="Search permissions by name, description...">
+                    <button id="advanced-search-button" 
+                        class="bg-blue-600 text-white px-6 py-3 flex items-center">
+                        Search
+                    </button>
+                </div>
+
+                <!-- Advanced Filters (toggle visibility) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" x-show="showFilters" x-transition>
+                    <!-- Permission Type Filter -->
+                    <div>
+                        <h4 class="font-semibold mb-2">Permission Type</h4>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="filter-admin" class="mr-2" checked>
+                                <span class="badge badge-admin">Admin</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="filter-delegated" class="mr-2" checked>
+                                <span class="badge badge-delegated">Delegated</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="filter-application" class="mr-2" checked>
+                                <span class="badge badge-application">Application</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- API Service Filter (Example) -->
+                    <div>
+                        <h4 class="font-semibold mb-2">API Service</h4>
+                        <select id="filter-service" class="w-full p-2 border rounded">
+                            <option value="">All Services</option>
+                            <option value="user">User</option>
+                            <option value="mail">Mail</option>
+                            <option value="calendar">Calendar</option>
+                            <option value="files">Files</option>
+                            <option value="teams">Teams</option>
+                            <option value="device">Device</option>
+                            <option value="identity">Identity</option>
+                            <option value="directory">Directory</option>
+                        </select>
+                    </div>
+
+                    <!-- Access Level Filter (Example) -->
+                    <div>
+                        <h4 class="font-semibold mb-2">Access Level</h4>
+                        <select id="filter-access" class="w-full p-2 border rounded">
+                            <option value="">All Access Levels</option>
+                            <option value="read">Read</option>
+                            <option value="readwrite">ReadWrite</option>
+                            <option value="manage">Manage</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Applied Filters (shown when filters active) -->
+                <div id="active-filters" class="mt-4 flex flex-wrap gap-2 hidden">
+                    <!-- Will be populated with active filter badges via JavaScript -->
+                </div>
+            </div>
+
+            <!-- Results Count -->
+            <div class="flex justify-between items-center mb-4">
+                <div id="results-count" class="text-gray-600">
+                    Showing <span id="visible-count">0</span> of <span id="total-count">0</span> permissions
+                </div>
+                <div>
+                    <select id="sort-order" class="p-2 border rounded">
+                        <option value="name-asc">Name (A-Z)</option>
+                        <option value="name-desc">Name (Z-A)</option>
+                        <option value="type">Permission Type</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Permissions Grid -->
+            <div id="advanced-permissions-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Permissions will be loaded here by JavaScript -->
+                <div class="p-6 bg-white rounded-lg shadow-md border border-gray-200">
+                    <div class="animate-pulse">
+                        <div class="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                        <div class="h-4 bg-gray-200 rounded mb-2"></div>
+                        <div class="h-4 bg-gray-200 rounded mb-2 w-5/6"></div>
+                        <div class="h-4 bg-gray-200 rounded mb-2 w-4/6"></div>
+                    </div>
+                </div>
+                <!-- More loading placeholders -->
+                <div class="p-6 bg-white rounded-lg shadow-md border border-gray-200">
+                    <div class="animate-pulse">
+                        <div class="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                        <div class="h-4 bg-gray-200 rounded mb-2"></div>
+                        <div class="h-4 bg-gray-200 rounded mb-2 w-5/6"></div>
+                        <div class="h-4 bg-gray-200 rounded mb-2 w-4/6"></div>
+                    </div>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-md border border-gray-200">
+                    <div class="animate-pulse">
+                        <div class="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                        <div class="h-4 bg-gray-200 rounded mb-2"></div>
+                        <div class="h-4 bg-gray-200 rounded mb-2 w-5/6"></div>
+                        <div class="h-4 bg-gray-200 rounded mb-2 w-4/6"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div id="pagination" class="mt-8 flex justify-center">
+                <div class="flex space-x-2">
+                    <button class="px-4 py-2 border rounded bg-gray-200 text-gray-600">Previous</button>
+                    <button class="px-4 py-2 border rounded bg-blue-600 text-white">1</button>
+                    <button class="px-4 py-2 border rounded bg-white text-blue-600">2</button>
+                    <button class="px-4 py-2 border rounded bg-white text-blue-600">3</button>
+                    <button class="px-4 py-2 border rounded bg-white text-blue-600">Next</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-6">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="mb-4 md:mb-0">
+                        <p>&copy; 2023 apipermissions.cengizyilmaz.net</p>
+                    </div>
+                    <div>
+                        <p>Data sourced from Microsoft Graph API permissions</p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="src/app.js"></script>
+    <script src="src/advanced-filters.js"></script>
+</body>
+</html> 

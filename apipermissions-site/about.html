@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | Microsoft API Permissions</title>
+    <meta name="description" content="About the Microsoft API Permissions project and usage information.">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.10.3/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="src/styles.css">
+    <link rel="icon" href="public/favicon.ico">
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-blue-700 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <img src="public/logo.svg" alt="API Permissions Logo" class="h-10 w-10">
+                    <h1 class="text-2xl font-bold">Microsoft API Permissions</h1>
+                </div>
+                <nav>
+                    <ul class="flex space-x-6">
+                        <li><a href="index.html" class="hover:text-blue-200 transition">Home</a></li>
+                        <li><a href="index.html#permissions" class="hover:text-blue-200 transition">Permissions</a></li>
+                        <li><a href="about.html" class="hover:text-blue-200 transition font-bold">About</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow container mx-auto px-4 py-8">
+            <div class="max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold mb-6">About Microsoft API Permissions Explorer</h2>
+                
+                <section class="mb-10">
+                    <h3 class="text-xl font-semibold mb-3">Project Overview</h3>
+                    <p class="mb-4">The Microsoft API Permissions Explorer is a comprehensive, user-friendly tool for developers, administrators, and security professionals to explore and understand the various permissions available in Microsoft's API ecosystem, particularly in Microsoft Graph API.</p>
+                    <p class="mb-4">This site provides up-to-date information about available permissions, their descriptions, and how they function within the Microsoft identity platform.</p>
+                </section>
+                
+                <section class="mb-10">
+                    <h3 class="text-xl font-semibold mb-3">Data Sources</h3>
+                    <p class="mb-4">All permission data on this site is sourced directly from the following Microsoft repositories:</p>
+                    <ul class="list-disc ml-6 mb-4">
+                        <li class="mb-2">
+                            <a href="https://github.com/microsoftgraph/microsoft-graph-devx-content/blob/dev/permissions/permissions-descriptions.json" 
+                               class="text-blue-600 hover:underline" target="_blank">
+                               permissions-descriptions.json
+                            </a> - Main permissions metadata
+                        </li>
+                        <li class="mb-2">
+                            <a href="https://github.com/microsoftgraph/microsoft-graph-devx-content/blob/dev/permissions/new/ProvisioningInfo.json" 
+                               class="text-blue-600 hover:underline" target="_blank">
+                               ProvisioningInfo.json
+                            </a> - Information about permission provisioning
+                        </li>
+                        <li class="mb-2">
+                            <a href="https://github.com/microsoftgraph/microsoft-graph-devx-content/blob/dev/permissions/new/permissions.json" 
+                               class="text-blue-600 hover:underline" target="_blank">
+                               permissions.json
+                            </a> - Additional permission details
+                        </li>
+                    </ul>
+                    <p>The site automatically updates when changes are made to these sources, ensuring that the information is always current.</p>
+                </section>
+                
+                <section class="mb-10">
+                    <h3 class="text-xl font-semibold mb-3">How to Use This Site</h3>
+                    <p class="mb-4">The Microsoft API Permissions Explorer provides several ways to explore and understand API permissions:</p>
+                    <ul class="list-disc ml-6 mb-4">
+                        <li class="mb-2"><strong>Search:</strong> Use the search bar to find specific permissions by name or description.</li>
+                        <li class="mb-2"><strong>Browse:</strong> Explore the complete list of permissions on the home page.</li>
+                        <li class="mb-2"><strong>Detail View:</strong> Click on "Details" for any permission to see comprehensive information.</li>
+                    </ul>
+                </section>
+                
+                <section class="mb-10">
+                    <h3 class="text-xl font-semibold mb-3">Contact</h3>
+                    <p class="mb-4">This site is maintained by <a href="https://cengizyilmaz.net" class="text-blue-600 hover:underline" target="_blank">Cengiz Yılmaz</a>.</p>
+                    <p>For questions, feedback, or suggestions, please visit the project's <a href="https://github.com/cengizyilmaz/apipermissions" class="text-blue-600 hover:underline" target="_blank">GitHub repository</a>.</p>
+                </section>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-6">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="mb-4 md:mb-0">
+                        <p>&copy; 2023 apipermissions.cengizyilmaz.net</p>
+                    </div>
+                    <div>
+                        <p>Data sourced from Microsoft Graph API permissions</p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+</body>
+</html> 

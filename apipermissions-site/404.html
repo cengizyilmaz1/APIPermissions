@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting... | Microsoft API Permissions</title>
+    <script>
+        // Parse the current URL
+        function parsePermissionFromUrl() {
+            const path = window.location.pathname;
+            const matches = path.match(/\/api\/([^\/]+)\/permission\/(.+)/);
+            if (matches) {
+                const [, apiName, permissionSlug] = matches;
+                // Convert slug back to permission format
+                const permission = permissionSlug.split('-').join('.');
+                return permission;
+            }
+            return null;
+        }
+
+        // Redirect to main page with permission parameter
+        window.onload = function() {
+            const permission = parsePermissionFromUrl();
+            if (permission) {
+                window.location.href = `/?permission=${encodeURIComponent(permission)}`;
+            } else {
+                window.location.href = '/';
+            }
+        };
+    </script>
+</head>
+<body>
+    <p>Redirecting...</p>
+</body>
+</html> 

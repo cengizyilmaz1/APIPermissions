@@ -1,0 +1,99 @@
+name: Deploy API Permissions Site
+
+on:
+  schedule:
+    # Run daily at midnight UTC
+    - cron: '0 0 * * *'
+  
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  
+  # Run on pushes to main branch
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Checkout repository
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      # Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+      
+      # Install dependencies (if we added package.json later)
+      - name: Install dependencies
+        run: |
+          if [ -f package.json ]; then
+            npm ci
+          fi
+      
+      # Fetch latest Microsoft Graph API permissions data
+      - name: Fetch latest permissions data
+        run: |
+          mkdir -p apipermissions-site/data
+          curl -o apipermissions-site/data/permissions-descriptions.json https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content/dev/permissions/permissions-descriptions.json
+          curl -o apipermissions-site/data/provisioning-info.json https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content/dev/permissions/new/ProvisioningInfo.json
+          curl -o apipermissions-site/data/permissions.json https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content/dev/permissions/new/permissions.json
+      
+      # Generate dynamic data files if needed
+      - name: Process data
+        run: |
+          echo "Data fetched from Microsoft repositories at $(date)" > apipermissions-site/data/last-update.txt
+      
+      # Generate sitemap.xml
+      - name: Generate sitemap
+        run: |
+          echo '<?xml version="1.0" encoding="UTF-8"?>' > apipermissions-site/sitemap.xml
+          echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' >> apipermissions-site/sitemap.xml
+          echo '  <url><loc>https://apipermissions.cengizyilmaz.net/</loc></url>' >> apipermissions-site/sitemap.xml
+          echo '  <url><loc>https://apipermissions.cengizyilmaz.net/permissions.html</loc></url>' >> apipermissions-site/sitemap.xml
+          echo '  <url><loc>https://apipermissions.cengizyilmaz.net/about.html</loc></url>' >> apipermissions-site/sitemap.xml
+          echo '</urlset>' >> apipermissions-site/sitemap.xml
+      
+      # Create robots.txt
+      - name: Create robots.txt
+        run: |
+          echo 'User-agent: *' > apipermissions-site/robots.txt
+          echo 'Allow: /' >> apipermissions-site/robots.txt
+          echo 'Sitemap: https://apipermissions.cengizyilmaz.net/sitemap.xml' >> apipermissions-site/robots.txt
+      
+      # Setup custom domain for GitHub Pages
+      - name: Setup custom domain
+        run: |
+          echo 'apipermissions.cengizyilmaz.net' > apipermissions-site/CNAME
+      
+      # Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: apipermissions-site # The folder the action should deploy
+          branch: gh-pages # The branch the action should deploy to
+          clean: true # Automatically remove deleted files from the deploy branch
+      
+      # Optional: Create release with timestamp
+      - name: Create timestamp for release
+        id: timestamp
+        run: echo "::set-output name=timestamp::$(date +'%Y-%m-%d_%H-%M-%S')"
+      
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: release-${{ steps.timestamp.outputs.timestamp }}
+          release_name: API Permissions Site Update ${{ steps.timestamp.outputs.timestamp }}
+          draft: false
+          prerelease: false
+          body: |
+            Automatic update of API Permissions site with latest data from Microsoft Graph API permissions.
+            
+            Update timestamp: ${{ steps.timestamp.outputs.timestamp }} 
