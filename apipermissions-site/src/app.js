@@ -2,9 +2,9 @@
 
 // URLs for Microsoft Graph API permissions data
 const PERMISSIONS_URLS = {
-    descriptions: 'https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content/dev/permissions/permissions-descriptions.json',
-    provisioning: 'https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content/dev/permissions/new/ProvisioningInfo.json',
-    permissions: 'https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content/dev/permissions/new/permissions.json'
+    descriptions: '/data/permissions-descriptions.json',
+    provisioning: '/data/provisioning-info.json',
+    permissions: '/data/permissions.json'
 };
 
 // Base URL for canonical links

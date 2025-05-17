@@ -45,13 +45,46 @@ jobs:
       
       - name: Fetch latest permissions data
         run: |
-          curl -L -o apipermissions-site/data/permissions-descriptions.json https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content/dev/permissions/permissions-descriptions.json
-          curl -L -o apipermissions-site/data/provisioning-info.json https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content/dev/permissions/new/ProvisioningInfo.json
-          curl -L -o apipermissions-site/data/permissions.json https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content/dev/permissions/new/permissions.json
+          # Download files with error checking
+          for file in "permissions-descriptions.json" "ProvisioningInfo.json" "permissions.json"; do
+            response=$(curl -L -w "%{http_code}" -o temp.json "https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content/dev/permissions/${file}")
+            if [ $? -ne 0 ] || [ "$response" != "200" ]; then
+              echo "Failed to download $file"
+              exit 1
+            fi
+            # Verify JSON is valid
+            if ! jq empty temp.json 2>/dev/null; then
+              echo "Invalid JSON in $file"
+              exit 1
+            fi
+            # Move to final location with correct name
+            case "$file" in
+              "permissions-descriptions.json")
+                mv temp.json "apipermissions-site/data/permissions-descriptions.json"
+                ;;
+              "ProvisioningInfo.json")
+                mv temp.json "apipermissions-site/data/provisioning-info.json"
+                ;;
+              "permissions.json")
+                mv temp.json "apipermissions-site/data/permissions.json"
+                ;;
+            esac
+          done
+          
+          # Verify files exist and have content
+          for file in "permissions-descriptions.json" "provisioning-info.json" "permissions.json"; do
+            if [ ! -s "apipermissions-site/data/$file" ]; then
+              echo "Missing or empty file: $file"
+              exit 1
+            fi
+          done
+          
+          echo "All permission files downloaded and verified successfully"
       
       - name: Process data
         run: |
           echo "Data fetched from Microsoft repositories at $(date)" > apipermissions-site/data/last-update.txt
+          ls -l apipermissions-site/data/
       
       - name: Generate sitemap
         run: |
