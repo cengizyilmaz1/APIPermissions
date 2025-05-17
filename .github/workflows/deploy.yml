@@ -45,46 +45,61 @@ jobs:
       
       - name: Fetch latest permissions data
         run: |
-          # Download files with error checking
-          for file in "permissions-descriptions.json" "ProvisioningInfo.json" "permissions.json"; do
-            response=$(curl -L -w "%{http_code}" -o temp.json "https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content/dev/permissions/${file}")
+          # Define file mappings
+          declare -A file_paths=(
+            ["permissions-descriptions.json"]="dev/permissions/permissions-descriptions.json"
+            ["provisioning-info.json"]="dev/permissions/new/ProvisioningInfo.json"
+            ["permissions.json"]="dev/permissions/new/permissions.json"
+          )
+          
+          # Base GitHub raw content URL
+          BASE_URL="https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content"
+          
+          # Download each file
+          for target_file in "${!file_paths[@]}"; do
+            source_path="${file_paths[$target_file]}"
+            echo "Downloading $target_file from $source_path"
+            
+            # Download with curl and check response
+            response=$(curl -L -w "%{http_code}" -o "apipermissions-site/data/$target_file" "$BASE_URL/$source_path")
             if [ $? -ne 0 ] || [ "$response" != "200" ]; then
-              echo "Failed to download $file"
+              echo "Failed to download $target_file (HTTP $response)"
+              echo "URL: $BASE_URL/$source_path"
+              cat "apipermissions-site/data/$target_file" || true
               exit 1
             fi
+            
+            # Verify file exists and has content
+            if [ ! -s "apipermissions-site/data/$target_file" ]; then
+              echo "Error: $target_file is empty"
+              exit 1
+            fi
+            
             # Verify JSON is valid
-            if ! jq empty temp.json 2>/dev/null; then
-              echo "Invalid JSON in $file"
+            if ! jq empty "apipermissions-site/data/$target_file" 2>/dev/null; then
+              echo "Error: Invalid JSON in $target_file"
               exit 1
             fi
-            # Move to final location with correct name
-            case "$file" in
-              "permissions-descriptions.json")
-                mv temp.json "apipermissions-site/data/permissions-descriptions.json"
-                ;;
-              "ProvisioningInfo.json")
-                mv temp.json "apipermissions-site/data/provisioning-info.json"
-                ;;
-              "permissions.json")
-                mv temp.json "apipermissions-site/data/permissions.json"
-                ;;
-            esac
+            
+            echo "Successfully downloaded and verified $target_file"
           done
           
-          # Verify files exist and have content
-          for file in "permissions-descriptions.json" "provisioning-info.json" "permissions.json"; do
-            if [ ! -s "apipermissions-site/data/$file" ]; then
-              echo "Missing or empty file: $file"
-              exit 1
-            fi
-          done
-          
-          echo "All permission files downloaded and verified successfully"
+          # List all downloaded files
+          echo "Contents of data directory:"
+          ls -l apipermissions-site/data/
       
       - name: Process data
         run: |
           echo "Data fetched from Microsoft repositories at $(date)" > apipermissions-site/data/last-update.txt
-          ls -l apipermissions-site/data/
+          
+          # Verify all required files exist
+          required_files=("permissions-descriptions.json" "provisioning-info.json" "permissions.json")
+          for file in "${required_files[@]}"; do
+            if [ ! -f "apipermissions-site/data/$file" ]; then
+              echo "Error: Missing required file $file"
+              exit 1
+            fi
+          done
       
       - name: Generate sitemap
         run: |
