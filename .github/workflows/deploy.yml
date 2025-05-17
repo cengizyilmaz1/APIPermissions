@@ -45,11 +45,11 @@ jobs:
       
       - name: Fetch latest permissions data
         run: |
-          # Define file mappings with branch names
+          # Define file mappings with correct branch (dev)
           declare -A file_paths=(
-            ["permissions-descriptions.json"]="main/permissions/permissions-descriptions.json"
-            ["provisioning-info.json"]="main/permissions/new/ProvisioningInfo.json"
-            ["permissions.json"]="main/permissions/new/permissions.json"
+            ["permissions-descriptions.json"]="dev/permissions/permissions-descriptions.json"
+            ["provisioning-info.json"]="dev/permissions/new/ProvisioningInfo.json"
+            ["permissions.json"]="dev/permissions/permissions.json"
           )
           
           # Base GitHub raw content URL
@@ -79,6 +79,9 @@ jobs:
               else
                 response=$(curl -L -w "%{http_code}" -o "$output_file" "$url")
               fi
+              
+              # Print the URL being accessed (for debugging)
+              echo "Accessing URL: $url"
               
               if [ "$response" = "200" ]; then
                 return 0
@@ -112,6 +115,9 @@ jobs:
               if jq empty "apipermissions-site/data/$target_file" 2>/dev/null; then
                 echo "File contents summary for $target_file:"
                 jq 'if type == "array" then length else if type == "object" then keys | length else type end end' "apipermissions-site/data/$target_file"
+                # Show first few lines of the file
+                echo "First few lines of $target_file:"
+                head -n 5 "apipermissions-site/data/$target_file"
               else
                 echo "Error: Invalid JSON in $target_file"
                 exit 1
