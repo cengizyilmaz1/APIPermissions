@@ -45,11 +45,12 @@ jobs:
       
       - name: Fetch latest permissions data
         run: |
-          # Define file mappings with correct branch (dev)
+          # Define file mappings with correct URLs
           declare -A file_paths=(
             ["permissions-descriptions.json"]="dev/permissions/permissions-descriptions.json"
             ["provisioning-info.json"]="dev/permissions/new/ProvisioningInfo.json"
-            ["permissions.json"]="dev/permissions/permissions.json"
+            ["permissions-v1.json"]="dev/permissions/permissions-v1.json"
+            ["permissions-beta.json"]="dev/permissions/permissions-beta.json"
           )
           
           # Base GitHub raw content URL
@@ -65,6 +66,7 @@ jobs:
             
             while [ $retry_count -lt $max_retries ]; do
               echo "Attempt $(($retry_count + 1)) of $max_retries..."
+              echo "Downloading from: $url"
               
               # Add delay between requests
               if [ $retry_count -gt 0 ]; then
@@ -80,9 +82,6 @@ jobs:
                 response=$(curl -L -w "%{http_code}" -o "$output_file" "$url")
               fi
               
-              # Print the URL being accessed (for debugging)
-              echo "Accessing URL: $url"
-              
               if [ "$response" = "200" ]; then
                 return 0
               elif [ "$response" = "429" ]; then
@@ -90,6 +89,8 @@ jobs:
                 retry_count=$(($retry_count + 1))
               else
                 echo "Failed with HTTP $response"
+                echo "Response content:"
+                cat "$output_file" || true
                 return 1
               fi
             done
@@ -115,7 +116,6 @@ jobs:
               if jq empty "apipermissions-site/data/$target_file" 2>/dev/null; then
                 echo "File contents summary for $target_file:"
                 jq 'if type == "array" then length else if type == "object" then keys | length else type end end' "apipermissions-site/data/$target_file"
-                # Show first few lines of the file
                 echo "First few lines of $target_file:"
                 head -n 5 "apipermissions-site/data/$target_file"
               else
@@ -127,12 +127,11 @@ jobs:
             else
               echo "Failed to download $target_file after retries"
               echo "URL: $BASE_URL/$source_path"
-              cat "apipermissions-site/data/$target_file" || true
               exit 1
             fi
             
             # Add delay between files
-            if [ "$target_file" != "permissions.json" ]; then
+            if [ ! -z "${file_paths[$target_file]}" ]; then
               echo "Waiting 5 seconds before next download..."
               sleep 5
             fi
@@ -154,7 +153,12 @@ jobs:
           echo "Data fetched from Microsoft repositories at $(date)" > apipermissions-site/data/last-update.txt
           
           # Verify all required files exist and have content
-          required_files=("permissions-descriptions.json" "provisioning-info.json" "permissions.json")
+          required_files=(
+            "permissions-descriptions.json"
+            "provisioning-info.json"
+            "permissions-v1.json"
+            "permissions-beta.json"
+          )
           for file in "${required_files[@]}"; do
             if [ ! -f "apipermissions-site/data/$file" ]; then
               echo "Error: Missing required file $file"
