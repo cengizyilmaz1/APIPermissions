@@ -28,21 +28,22 @@ jobs:
         with:
           node-version: '16'
           cache: 'npm'
+          cache-dependency-path: './package.json'
       
-      # Install dependencies (if we added package.json later)
+      # Install dependencies
       - name: Install dependencies
-        run: |
-          if [ -f package.json ]; then
-            npm ci
-          fi
+        run: npm install
+      
+      # Create data directory if it doesn't exist
+      - name: Create data directory
+        run: mkdir -p apipermissions-site/data
       
       # Fetch latest Microsoft Graph API permissions data
       - name: Fetch latest permissions data
         run: |
-          mkdir -p apipermissions-site/data
-          curl -o apipermissions-site/data/permissions-descriptions.json https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content/dev/permissions/permissions-descriptions.json
-          curl -o apipermissions-site/data/provisioning-info.json https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content/dev/permissions/new/ProvisioningInfo.json
-          curl -o apipermissions-site/data/permissions.json https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content/dev/permissions/new/permissions.json
+          curl -L -o apipermissions-site/data/permissions-descriptions.json https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content/dev/permissions/permissions-descriptions.json
+          curl -L -o apipermissions-site/data/provisioning-info.json https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content/dev/permissions/new/ProvisioningInfo.json
+          curl -L -o apipermissions-site/data/permissions.json https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content/dev/permissions/new/permissions.json
       
       # Generate dynamic data files if needed
       - name: Process data
@@ -75,25 +76,20 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: apipermissions-site # The folder the action should deploy
-          branch: gh-pages # The branch the action should deploy to
-          clean: true # Automatically remove deleted files from the deploy branch
+          folder: apipermissions-site
+          branch: gh-pages
+          clean: true
       
-      # Optional: Create release with timestamp
-      - name: Create timestamp for release
-        id: timestamp
-        run: echo "::set-output name=timestamp::$(date +'%Y-%m-%d_%H-%M-%S')"
-      
+      # Create Release
       - name: Create Release
+        id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: release-${{ steps.timestamp.outputs.timestamp }}
-          release_name: API Permissions Site Update ${{ steps.timestamp.outputs.timestamp }}
-          draft: false
-          prerelease: false
+          tag_name: release-${{ github.run_number }}
+          release_name: API Permissions Site Update ${{ github.run_number }}
           body: |
             Automatic update of API Permissions site with latest data from Microsoft Graph API permissions.
             
-            Update timestamp: ${{ steps.timestamp.outputs.timestamp }} 
+            Update timestamp: ${{ github.event.run_started_at }} 
