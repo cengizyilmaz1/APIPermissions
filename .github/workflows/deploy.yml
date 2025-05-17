@@ -49,8 +49,6 @@ jobs:
           declare -A file_paths=(
             ["permissions-descriptions.json"]="dev/permissions/permissions-descriptions.json"
             ["provisioning-info.json"]="dev/permissions/new/ProvisioningInfo.json"
-            ["permissions-beta.json"]="dev/permissions/permissions-beta.json"
-            ["permissions.json"]="dev/permissions/new/permissions.json"
           )
           
           # Base GitHub raw content URL
@@ -156,8 +154,6 @@ jobs:
           required_files=(
             "permissions-descriptions.json"
             "provisioning-info.json"
-            "permissions-beta.json"
-            "permissions.json"
           )
           for file in "${required_files[@]}"; do
             if [ ! -f "apipermissions-site/data/$file" ]; then
