@@ -55,33 +55,78 @@ jobs:
           # Base GitHub raw content URL
           BASE_URL="https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-devx-content"
           
+          # Function to download with retries
+          download_with_retry() {
+            local url="$1"
+            local output_file="$2"
+            local max_retries=3
+            local retry_count=0
+            local wait_time=5
+            
+            while [ $retry_count -lt $max_retries ]; do
+              echo "Attempt $(($retry_count + 1)) of $max_retries..."
+              
+              # Add delay between requests
+              if [ $retry_count -gt 0 ]; then
+                echo "Waiting ${wait_time} seconds before retry..."
+                sleep $wait_time
+                wait_time=$(($wait_time * 2))
+              fi
+              
+              # Use GitHub token for authentication if available
+              if [ -n "${{ secrets.GITHUB_TOKEN }}" ]; then
+                response=$(curl -L -w "%{http_code}" -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o "$output_file" "$url")
+              else
+                response=$(curl -L -w "%{http_code}" -o "$output_file" "$url")
+              fi
+              
+              if [ "$response" = "200" ]; then
+                return 0
+              elif [ "$response" = "429" ]; then
+                echo "Rate limit hit (429). Retrying after delay..."
+                retry_count=$(($retry_count + 1))
+              else
+                echo "Failed with HTTP $response"
+                return 1
+              fi
+            done
+            
+            return 1
+          }
+          
           # Download each file
           for target_file in "${!file_paths[@]}"; do
             source_path="${file_paths[$target_file]}"
             echo "Downloading $target_file from $source_path"
             
-            # Download with curl and check response
-            response=$(curl -L -w "%{http_code}" -o "apipermissions-site/data/$target_file" "$BASE_URL/$source_path")
-            if [ $? -ne 0 ] || [ "$response" != "200" ]; then
-              echo "Failed to download $target_file (HTTP $response)"
+            if download_with_retry "$BASE_URL/$source_path" "apipermissions-site/data/$target_file"; then
+              echo "Successfully downloaded $target_file"
+              
+              # Verify file exists and has content
+              if [ ! -s "apipermissions-site/data/$target_file" ]; then
+                echo "Error: $target_file is empty"
+                exit 1
+              fi
+              
+              # Verify JSON is valid
+              if ! jq empty "apipermissions-site/data/$target_file" 2>/dev/null; then
+                echo "Error: Invalid JSON in $target_file"
+                exit 1
+              fi
+              
+              echo "Successfully verified $target_file"
+            else
+              echo "Failed to download $target_file after retries"
               echo "URL: $BASE_URL/$source_path"
               cat "apipermissions-site/data/$target_file" || true
               exit 1
             fi
             
-            # Verify file exists and has content
-            if [ ! -s "apipermissions-site/data/$target_file" ]; then
-              echo "Error: $target_file is empty"
-              exit 1
+            # Add delay between files
+            if [ "$target_file" != "permissions.json" ]; then
+              echo "Waiting 5 seconds before next download..."
+              sleep 5
             fi
-            
-            # Verify JSON is valid
-            if ! jq empty "apipermissions-site/data/$target_file" 2>/dev/null; then
-              echo "Error: Invalid JSON in $target_file"
-              exit 1
-            fi
-            
-            echo "Successfully downloaded and verified $target_file"
           done
           
           # List all downloaded files
