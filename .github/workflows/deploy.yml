@@ -45,11 +45,11 @@ jobs:
       
       - name: Fetch latest permissions data
         run: |
-          # Define file mappings
+          # Define file mappings with branch names
           declare -A file_paths=(
-            ["permissions-descriptions.json"]="dev/permissions/permissions-descriptions.json"
-            ["provisioning-info.json"]="dev/permissions/new/ProvisioningInfo.json"
-            ["permissions.json"]="dev/permissions/new/permissions.json"
+            ["permissions-descriptions.json"]="main/permissions/permissions-descriptions.json"
+            ["provisioning-info.json"]="main/permissions/new/ProvisioningInfo.json"
+            ["permissions.json"]="main/permissions/new/permissions.json"
           )
           
           # Base GitHub raw content URL
@@ -108,8 +108,11 @@ jobs:
                 exit 1
               fi
               
-              # Verify JSON is valid
-              if ! jq empty "apipermissions-site/data/$target_file" 2>/dev/null; then
+              # Verify JSON is valid and show content summary
+              if jq empty "apipermissions-site/data/$target_file" 2>/dev/null; then
+                echo "File contents summary for $target_file:"
+                jq 'if type == "array" then length else if type == "object" then keys | length else type end end' "apipermissions-site/data/$target_file"
+              else
                 echo "Error: Invalid JSON in $target_file"
                 exit 1
               fi
@@ -129,21 +132,33 @@ jobs:
             fi
           done
           
-          # List all downloaded files
+          # List all downloaded files with sizes
           echo "Contents of data directory:"
-          ls -l apipermissions-site/data/
+          ls -lh apipermissions-site/data/
+          
+          # Verify JSON files are readable
+          echo "Verifying JSON files are readable:"
+          for file in apipermissions-site/data/*.json; do
+            echo "Testing $file:"
+            head -n 1 "$file"
+          done
       
       - name: Process data
         run: |
           echo "Data fetched from Microsoft repositories at $(date)" > apipermissions-site/data/last-update.txt
           
-          # Verify all required files exist
+          # Verify all required files exist and have content
           required_files=("permissions-descriptions.json" "provisioning-info.json" "permissions.json")
           for file in "${required_files[@]}"; do
             if [ ! -f "apipermissions-site/data/$file" ]; then
               echo "Error: Missing required file $file"
               exit 1
             fi
+            if [ ! -s "apipermissions-site/data/$file" ]; then
+              echo "Error: File $file is empty"
+              exit 1
+            fi
+            echo "File $file exists and has content"
           done
       
       - name: Generate sitemap

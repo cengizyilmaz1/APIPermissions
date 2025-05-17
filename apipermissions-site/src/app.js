@@ -2,9 +2,9 @@
 
 // URLs for Microsoft Graph API permissions data
 const PERMISSIONS_URLS = {
-    descriptions: '/data/permissions-descriptions.json',
-    provisioning: '/data/provisioning-info.json',
-    permissions: '/data/permissions.json'
+    descriptions: './data/permissions-descriptions.json',
+    provisioning: './data/provisioning-info.json',
+    permissions: './data/permissions.json'
 };
 
 // Base URL for canonical links
