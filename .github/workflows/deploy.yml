@@ -51,6 +51,7 @@ jobs:
             ["provisioning-info.json"]="dev/permissions/new/ProvisioningInfo.json"
             ["permissions-v1.json"]="dev/permissions/permissions-v1.json"
             ["permissions-beta.json"]="dev/permissions/permissions-beta.json"
+            ["permissions.json"]="dev/permissions/new/permissions.json"
           )
           
           # Base GitHub raw content URL
@@ -158,6 +159,7 @@ jobs:
             "provisioning-info.json"
             "permissions-v1.json"
             "permissions-beta.json"
+            "permissions.json"
           )
           for file in "${required_files[@]}"; do
             if [ ! -f "apipermissions-site/data/$file" ]; then
